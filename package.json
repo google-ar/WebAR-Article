@@ -1,0 +1,55 @@
+{
+  "name": "Article",
+  "version": "1.0.0",
+  "description": "Article is a responsive and information rich website that is progressively enhanced with Augmented Reality (AR) content exposed through experimental web technologies.",
+  "scripts": {
+    "build": "webpack",
+    "dev": "webpack-dev-server --hot --inline --port 8000",
+    "lint": "eslint src/ --ignore-pattern 'src/lib/'"
+  },
+  "keywords": [
+    "WebAR",
+    "Article",
+    "ThreeJS",
+    "WebGL",
+    "Desktop",
+    "Mobile",
+    "Daydream",
+    "Design",
+    "Prototyping",
+    "AR UX",
+    "AR UI",
+    "UI",
+    "UX",
+    "3D",
+    "AR"
+  ],
+  "author": "Reza Ali <rezaali@google.com>",
+  "license": "Apache-2.0",
+  "devDependencies": {
+    "babel-core": "^6.26.0",
+    "babel-eslint": "^8.0.2",
+    "babel-loader": "^7.1.2",
+    "babel-preset-es2015": "^6.24.1",
+    "babel-preset-latest": "^6.24.1",
+    "babel-preset-stage-0": "^6.24.1",
+    "base64-image-loader": "^1.2.0",
+    "eslint": "^4.11.0",
+    "eslint-config-google": "^0.9.1",
+    "glslify-import": "^3.0.0",
+    "glslify-import-loader": "^0.1.1",
+    "glslify-loader": "^1.0.2",
+    "jshint": "^2.9.5",
+    "jshint-loader": "^0.8.4",
+    "json-loader": "^0.5.7",
+    "node-libs-browser": "^2.0.0",
+    "raw-loader": "^0.5.1",
+    "uglifyjs-webpack-plugin": "^1.0.1",
+    "webpack": "^3.6.0",
+    "webpack-dev-server": "^2.8.2"
+  },
+  "dependencies": {
+    "@tweenjs/tween.js": "^17.1.1",
+    "is-mobile-with-ipad": "^0.2.2"
+  }
+}

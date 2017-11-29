@@ -1,0 +1,16 @@
+name: "draco"
+description:
+  "Draco is a library for compressing and decompressing 3D geometric meshes and point clouds. It is intended to improve the storage and transmission of 3D graphics."
+
+third_party {
+  url {
+    type: HOMEPAGE
+    value: "https://google.github.io/draco/"
+  }
+  url {
+    type: GIT
+    value: "git@github.com:google/draco.git"
+  }
+  version: "1.2.0"
+  last_upgrade_date { year: 2017 month: 10 day: 24 }
+}

@@ -1,0 +1,16 @@
+name: "three.ar.js"
+description:
+  "A helper three.js library for building AR web experiences that run in WebARonARKit and WebARonARCore."
+
+third_party {
+  url {
+    type: HOMEPAGE
+    value: "https://github.com/google-ar/three.ar.js/"
+  }
+  url {
+    type: GIT
+    value: "git@github.com:google-ar/three.ar.js.git"
+  }
+  version: "master"
+  last_upgrade_date { year: 2017 month: 11 day: 16 }
+}

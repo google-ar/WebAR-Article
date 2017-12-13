@@ -94,7 +94,11 @@ export default class App extends THREE.EventDispatcher {
     this.update(time);
     this.renderer.render(this.scene, this.camera);
     this.render();
-    requestAnimationFrame(this._update);
+    if (this.vrDisplay) {
+      this.vrDisplay.requestAnimationFrame(this._update);
+    } else {
+      requestAnimationFrame(this._update);
+    }
   };
 
   resize = () => {

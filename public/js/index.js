@@ -1561,6 +1561,7 @@ var _initialiseProps = function _initialiseProps() {
     _this2.addEventListener('proximityWarning', _this2.HUD.proximityWarning);
     _this2.addEventListener('proximityNormal', _this2.HUD.proximityNormal);
 
+    _this2.HUD.hideButtons(0);
     _this2.HUD.resize();
   };
 
@@ -1773,7 +1774,6 @@ var _initialiseProps = function _initialiseProps() {
 
     dracoLoader.load('../public/models/Astronaut/Astronaut.drc', function (geometry) {
       geometry.computeVertexNormals();
-
       _this2.setupModel(new THREE.Mesh(geometry, material));
       _this2.setupModelShadow();
       _this2.setupLights();
@@ -1811,14 +1811,24 @@ var _initialiseProps = function _initialiseProps() {
   this.setupModelTween = function () {
     _this2.modelScale = { value: 0.0 };
     _this2.modelTween = new _tween2.default.Tween(_this2.modelScale);
-
     _this2.modelTween.easing(_tween2.default.Easing.Cubic.InOut);
+
     _this2.modelTween.onUpdate(function (tween) {
       var scale = _this2.modelScale.value;
       _this2.model.scale.set(scale, scale, scale);
       _this2.spriteShadow.scale.set(scale, scale, scale);
     });
+
     _this2.modelTween.to({ value: 1.0 }, _this2.duration * 2.0, _this2.duration * 10.0);
+
+    _this2.groundGrid.fadeIn(_this2.duration, _this2.duration);
+    _this2.background.fadeIn(_this2.duration, _this2.duration);
+
+    _this2.modelTween.onComplete(function () {
+      _this2.HUD.showButtons(_this2.duration, _this2.duration);
+      _this2.modelTween.onComplete(function () {});
+    });
+
     _this2.modelTween.start();
   };
 
@@ -1893,7 +1903,6 @@ var _initialiseProps = function _initialiseProps() {
     });
     _this2.groundGrid.renderOrder = RENDERORDER.GROUNDGRID;
     _this2.groundGrid.fadeOut(0);
-    _this2.groundGrid.fadeIn(_this2.duration, _this2.duration);
     _this2.S3DScene.add(_this2.groundGrid);
   };
 
@@ -1905,7 +1914,6 @@ var _initialiseProps = function _initialiseProps() {
     });
     _this2.background.renderOrder = RENDERORDER.BACKGROUND;
     _this2.background.fadeOut(0);
-    _this2.background.fadeIn(_this2.duration, _this2.duration);
     _this2.S3DScene.add(_this2.background);
   };
 
@@ -3705,7 +3713,11 @@ var _initialiseProps = function _initialiseProps() {
     _this2.update(time);
     _this2.renderer.render(_this2.scene, _this2.camera);
     _this2.render();
-    requestAnimationFrame(_this2._update);
+    if (_this2.vrDisplay) {
+      _this2.vrDisplay.requestAnimationFrame(_this2._update);
+    } else {
+      requestAnimationFrame(_this2._update);
+    }
   };
 
   this.resize = function () {
@@ -4206,6 +4218,18 @@ var _initialiseProps = function _initialiseProps() {
     _this2.loadingIndicator.fadeOut(_this2.duration, 0.0, function () {
       _this2.scene.remove(_this2.loadingIndicator);
     });
+  };
+
+  this.showButtons = function (duration, delay, cb) {
+    var dur = duration === undefined ? _this2.duration : duration;
+    _this2.FSButton.fadeIn(dur, delay, cb);
+    if (_this2.ARButton) _this2.ARButton.fadeIn(dur, delay, cb);
+  };
+
+  this.hideButtons = function (duration, delay, cb) {
+    var dur = duration === undefined ? _this2.duration : duration;
+    _this2.FSButton.fadeOut(dur, delay, cb);
+    if (_this2.ARButton) _this2.ARButton.fadeOut(dur, delay, cb);
   };
 
   this.resetUserFlow = function () {

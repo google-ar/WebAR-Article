@@ -139,6 +139,7 @@ export default class App extends AppBase {
     this.addEventListener('proximityWarning', this.HUD.proximityWarning);
     this.addEventListener('proximityNormal', this.HUD.proximityNormal);
 
+    this.HUD.hideButtons(0);
     this.HUD.resize();
   };
 
@@ -356,7 +357,6 @@ export default class App extends AppBase {
 
     dracoLoader.load('../public/models/Astronaut/Astronaut.drc', geometry => {
       geometry.computeVertexNormals();
-
       this.setupModel(new THREE.Mesh(geometry, material));
       this.setupModelShadow();
       this.setupLights();
@@ -394,18 +394,28 @@ export default class App extends AppBase {
   setupModelTween = () => {
     this.modelScale = { value: 0.0 };
     this.modelTween = new TWEEN.Tween(this.modelScale);
-
     this.modelTween.easing(TWEEN.Easing.Cubic.InOut);
+
     this.modelTween.onUpdate(tween => {
       let scale = this.modelScale.value;
       this.model.scale.set(scale, scale, scale);
       this.spriteShadow.scale.set(scale, scale, scale);
     });
+
     this.modelTween.to(
       { value: 1.0 },
       this.duration * 2.0,
       this.duration * 10.0
     );
+
+    this.groundGrid.fadeIn(this.duration, this.duration);
+    this.background.fadeIn(this.duration, this.duration);
+
+    this.modelTween.onComplete(() => {
+      this.HUD.showButtons(this.duration, this.duration);
+      this.modelTween.onComplete(() => {});
+    });
+
     this.modelTween.start();
   };
 
@@ -485,7 +495,6 @@ export default class App extends AppBase {
     });
     this.groundGrid.renderOrder = RENDERORDER.GROUNDGRID;
     this.groundGrid.fadeOut(0);
-    this.groundGrid.fadeIn(this.duration, this.duration);
     this.S3DScene.add(this.groundGrid);
   };
 
@@ -497,7 +506,6 @@ export default class App extends AppBase {
     });
     this.background.renderOrder = RENDERORDER.BACKGROUND;
     this.background.fadeOut(0);
-    this.background.fadeIn(this.duration, this.duration);
     this.S3DScene.add(this.background);
   };
 

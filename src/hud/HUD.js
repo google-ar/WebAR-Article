@@ -471,6 +471,18 @@ export default class HUD extends THREE.EventDispatcher {
     });
   };
 
+  showButtons = (duration, delay, cb) => {
+    let dur = duration === undefined ? this.duration : duration;
+    this.FSButton.fadeIn(dur, delay, cb);
+    if (this.ARButton) this.ARButton.fadeIn(dur, delay, cb);
+  };
+
+  hideButtons = (duration, delay, cb) => {
+    let dur = duration === undefined ? this.duration : duration;
+    this.FSButton.fadeOut(dur, delay, cb);
+    if (this.ARButton) this.ARButton.fadeOut(dur, delay, cb);
+  };
+
   resetUserFlow = () => {
     this.userFlowPlaced = false;
     this.userFlowPlacedFirstTime = false;

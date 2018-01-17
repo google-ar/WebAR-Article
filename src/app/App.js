@@ -555,7 +555,7 @@ export default class App extends AppBase {
     this.reticle = new Reticle({
       vrDisplay: this.vrDisplay,
       size: Math.max(modelSize.x, modelSize.z),
-      easing: 0.5,
+      easing: 1.0,
     });
     this.reticle.setAlpha(0.0);
 

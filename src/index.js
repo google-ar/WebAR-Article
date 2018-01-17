@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-import './lib/webar-desktop.min';
+//import './lib/webar-desktop.min';
 
 import App from './app/App';
 

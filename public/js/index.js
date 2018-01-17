@@ -4180,7 +4180,11 @@ var _initialiseProps = function _initialiseProps() {
   this.updateCloseButton = function () {
     var size = _this2.renderer.getDrawingBufferSize();
     var btnSize = _this2.closeButton.getSize();
-    _this2.closeButton.position.set(_this2.spacing + btnSize.x * 0.5, size.height - _this2.spacing - btnSize.y * 0.5, 0);
+    if (size.width > size.height) {
+      _this2.closeButton.position.set(_this2.spacing + btnSize.x * 0.5, _this2.spacing + btnSize.y * 0.5, 0);
+    } else {
+      _this2.closeButton.position.set(_this2.spacing + btnSize.x * 0.5, size.height - _this2.spacing - btnSize.y * 0.5, 0);
+    }
   };
 
   this.setupDebugButton = function () {

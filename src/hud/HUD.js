@@ -371,11 +371,19 @@ export default class HUD extends THREE.EventDispatcher {
   updateCloseButton = () => {
     let size = this.renderer.getDrawingBufferSize();
     let btnSize = this.closeButton.getSize();
-    this.closeButton.position.set(
-      this.spacing + btnSize.x * 0.5,
-      size.height - this.spacing - btnSize.y * 0.5,
-      0
-    );
+    if (size.width > size.height) {
+      this.closeButton.position.set(
+        this.spacing + btnSize.x * 0.5,
+        this.spacing + btnSize.y * 0.5,
+        0
+      );
+    } else {
+      this.closeButton.position.set(
+        this.spacing + btnSize.x * 0.5,
+        size.height - this.spacing - btnSize.y * 0.5,
+        0
+      );
+    }
   };
 
   setupDebugButton = () => {

@@ -36,9 +36,8 @@ let RENDERORDER = {
   BACKGROUND: 1,
   GROUNDGRID: 2,
   MODELSHADOW: 3,
-  spriteShadow: 4,
-  MODEL: 5,
-  HUD: 6,
+  MODEL: 4,
+  HUD: 5,
 };
 
 export default class App extends AppBase {
@@ -64,10 +63,9 @@ export default class App extends AppBase {
   parseURL = () => {
     let params = this.getUrlParams();
     if (params.armode == true) {
-      this.enterFS();
-      this.enterAR();
+      this.enableAR();
     } else if (params.fsmode == true) {
-      this.enterFS();
+      this.enableFullscreen();
     }
   };
 
@@ -94,8 +92,6 @@ export default class App extends AppBase {
 
   setupProperties = props => {
     this.debug = false;
-    this.ARMode = false;
-    this.FSMode = false;
     this.placedModel = false;
     this.duration = 400;
     this.mouse = new THREE.Vector2();
@@ -119,15 +115,21 @@ export default class App extends AppBase {
     this.HUD.renderOrder = RENDERORDER.HUD;
     this.container = document.getElementById('app');
 
-    this.HUD.addEventListener('fullscreen', this.enterFS);
-    this.HUD.addEventListener('ar', this.enterAR);
-    this.HUD.addEventListener('close', this.close);
+    this.HUD.addEventListener('fullscreen', this.enableFullscreen);
+    this.HUD.addEventListener('ar', this.enableAR);
+    this.HUD.addEventListener('close', () => {
+      if (this.IsAR()) {
+        this.disableAR();
+      } else if (this.IsFullscreen()) {
+        this.disableFullscreen();
+      }
+    });
     this.HUD.addEventListener('debug', this.toggleDebug);
 
-    this.addEventListener('enterAR', this.HUD.enterAR);
-    this.addEventListener('exitAR', this.HUD.exitAR);
-    this.addEventListener('enterFS', this.HUD.enterFS);
-    this.addEventListener('exitFS', this.HUD.exitFS);
+    this.addEventListener('enableAR', this.HUD.enterAR);
+    this.addEventListener('disableAR', this.HUD.exitAR);
+    this.addEventListener('enableFullscreen', this.HUD.enterFS);
+    this.addEventListener('disableFullscreen', this.HUD.exitFS);
 
     this.addEventListener('down', this.HUD.down);
     this.addEventListener('up', this.HUD.up);
@@ -200,9 +202,8 @@ export default class App extends AppBase {
   };
 
   enterFS = () => {
-    this.dispatchEvent({ type: 'enterFS', object: this });
     this.HUD.setSpacing(this.HUD.getSpacing() * 2.0);
-    this.FSMode = true;
+    this.setFullscreen(true);
 
     // Save the current scroll position so we can return to it later
     this.scrollX = window.scrollX;
@@ -230,9 +231,8 @@ export default class App extends AppBase {
   };
 
   exitFS = () => {
-    this.dispatchEvent({ type: 'exitFS', object: this });
     this.HUD.setSpacing(this.HUD.getSpacing() * 0.5);
-    this.FSMode = false;
+    this.setFullscreen(false);
 
     // Re-insert the page content
     document.body.appendChild(this.container);
@@ -252,23 +252,19 @@ export default class App extends AppBase {
     this.onWindowResize();
   };
 
-  close = event => {
-    if (this.ARMode) {
-      this.exitAR();
-    } else if (this.FSMode) {
-      this.exitFS();
-    }
-  };
-
   enterAR = () => {
-    if (this.FSMode !== true) {
-      this.enterFS();
+    if (!this.IsFullscreen()) {
+      this.enableFullscreen();
     }
-    this.dispatchEvent({ type: 'enterAR', object: this });
+
+    if (this.arControls == undefined) {
+      this.setupARCamera();
+      this.setupARControls();
+      this.setupAREffects();
+    }
+
     this.tweenOutModel();
     this.modelShadow.material.opacity = 0.5;
-    this.spriteShadow.fadeIn(this.duration);
-
     this.modelScene.position.set(10000, 10000, 10000);
     this.groundGrid.fadeOut(0);
 
@@ -279,7 +275,6 @@ export default class App extends AppBase {
 
     this.background.fadeOut(this.duration, 0, () => {
       this.S3DScene.remove(this.modelScene);
-      this.ARMode = true;
       this.scene.add(this.reticle);
       this.reticle.fadeIn(this.duration, this.duration);
       if (!this.reticle.getTrackingState()) {
@@ -288,42 +283,51 @@ export default class App extends AppBase {
         this.HUD.foundSurface();
       }
       this.scene.add(this.modelScene);
+      this.setAR(true);
     });
     this.S3DControls.enabled = false;
   };
 
   exitAR = () => {
-    this.dispatchEvent({ type: 'exitAR', object: this });
     this.modelShadow.material.opacity = 0.25;
-    this.spriteShadow.fadeOut(this.duration);
     this.tweenOutModel();
-    this.placedModel = false;
-    this.ARMode = false;
-    this.S3DControls.enabled = true;
+    this.modelTween.onComplete(() => {
+      this.resetS3DCamera();
+      this.S3DControls.enabled = true;
+      this.HUD.dismissToasts(this.duration);
+      this.reticle.fadeOut(this.duration, 0, () => {
+        this.setAR(false);
+        this.S3DScene.remove(this.groundGrid);
+        this.background.fadeIn(this.duration, 0, () => {
+          if (this.arView.marcher) {
+            this.arView.controls.enabled = false;
+            this.arView.marcher.visible = false;
+          }
+          this.arControls.disable();
 
-    this.reticle.fadeOut(this.duration, 0.0);
-    this.background.fadeIn(this.duration, this.duration, () => {
-      if (this.arView.marcher) {
-        this.arView.controls.enabled = false;
-        this.arView.marcher.visible = false;
-      }
+          this.modelScene.position.set(0, 0, 0);
+          this.modelScene.rotation.set(0, 0, 0);
+          this.modelScene.updateMatrixWorld(true);
+          this.model.position.set(0, 0, 0);
+          this.model.rotation.set(0, 0, 0);
+          this.model.updateMatrixWorld(true);
+          this.scene.remove(this.modelScene);
 
-      this.arControls.disable();
-      this.modelScene.position.set(0, 0, 0);
-      this.modelScene.rotation.set(0, 0, 0);
-      this.modelScene.updateMatrixWorld(true);
-      this.model.position.set(0, 0, 0);
-      this.model.rotation.set(0, 0, 0);
-      this.model.updateMatrixWorld(true);
-      this.scene.remove(this.modelScene);
-      this.S3DScene.add(this.modelScene);
+          if (this.IsFullscreen()) {
+            this.disableFullscreen();
+          }
 
-      if (this.FSMode) {
-        this.exitFS();
-      }
+          this.HUD.showButtons(this.duration, this.duration);
+          this.S3DScene.add(this.groundGrid);
+          this.groundGrid.fadeIn(this.duration, 0, () => {
+            this.resetS3DCamera();
+            this.S3DScene.add(this.modelScene);
+            this.tweenInModel();
+          });
 
-      this.groundGrid.fadeIn(this.duration, this.duration, () => {
-        this.tweenInModel();
+          this.placedModel = false;
+        });
+        this.modelTween.onComplete(() => {});
       });
     });
   };
@@ -360,8 +364,6 @@ export default class App extends AppBase {
       this.setupModel(new THREE.Mesh(geometry, material));
       this.setupModelShadow();
       this.setupLights();
-      this.setupARControls();
-      this.setupAREffects();
       this.setupReticle();
       this.setupModelTween();
       this.parseURL();
@@ -399,7 +401,6 @@ export default class App extends AppBase {
     this.modelTween.onUpdate(tween => {
       let scale = this.modelScale.value;
       this.model.scale.set(scale, scale, scale);
-      this.spriteShadow.scale.set(scale, scale, scale);
     });
 
     this.modelTween.to(
@@ -442,15 +443,6 @@ export default class App extends AppBase {
     this.modelShadow.renderOrder = RENDERORDER.MODELSHADOW;
     this.modelShadow.receiveShadow = true;
     this.modelScene.add(this.modelShadow);
-
-    this.spriteShadow = new Shadow({
-      size: 1.0,
-      shadowColor: new THREE.Color(0x000000),
-      shadowAlpha: 0.5,
-    });
-    this.spriteShadow.renderOrder = RENDERORDER.spriteShadow;
-    this.spriteShadow.fadeOut(0);
-    // this.modelScene.add(this.spriteShadow);
   };
 
   setupLights = () => {
@@ -510,6 +502,11 @@ export default class App extends AppBase {
   };
 
   setupEvents = () => {
+    this.addEventListener('enableFullscreen', this.enterFS);
+    this.addEventListener('disableFullscreen', this.exitFS);
+    this.addEventListener('enableAR', this.enterAR);
+    this.addEventListener('disableAR', this.exitAR);
+
     window.addEventListener('resize', this.onWindowResize, false);
     this.canvas.addEventListener('mousedown', this.onMouseDown, false);
     this.canvas.addEventListener('mouseup', this.onMouseUp, false);
@@ -530,7 +527,7 @@ export default class App extends AppBase {
   onMouseUp = event => {
     this.mouseDown = false;
     this.updateMouse(event);
-    if (this.ARMode) {
+    if (this.IsAR()) {
       let tracked = this.reticle.getTrackingState();
       let position = this.reticle.getPosition();
       if (tracked) {
@@ -538,8 +535,8 @@ export default class App extends AppBase {
           this.tweenInModel();
           this.modelScene.position.copy(position);
           this.modelScene.updateMatrixWorld(true);
-          let x = this.camera.position.x - this.modelScene.position.x;
-          let z = this.camera.position.z - this.modelScene.position.z;
+          let x = this.ARCamera.position.x - this.modelScene.position.x;
+          let z = this.ARCamera.position.z - this.modelScene.position.z;
           let angle = Math.atan2(x, z);
           this.modelScene.rotation.set(0, angle + Math.PI * 0.25, 0);
           this.modelScene.updateMatrixWorld(true);
@@ -563,13 +560,13 @@ export default class App extends AppBase {
     this.reticle.setAlpha(0.0);
 
     this.reticle.addEventListener('findingSurface', event => {
-      if (this.ARMode) {
+      if (this.IsAR()) {
         this.HUD.findingSurface(event);
       }
     });
 
     this.reticle.addEventListener('foundSurface', event => {
-      if (this.ARMode) {
+      if (this.IsAR()) {
         this.HUD.foundSurface(event);
       }
     });
@@ -580,14 +577,14 @@ export default class App extends AppBase {
       vrDisplay: this.vrDisplay,
       scene: this.modelScene,
       object: this.model,
-      camera: this.camera,
+      camera: this.ARCamera,
       scene: this.scene,
       canvas: this.canvas,
       debug: this.debug,
     });
 
     this.arControls.addEventListener('down', () => {
-      if (this.ARMode) {
+      if (this.IsAR()) {
         if (this.arView.marcher) {
           this.arView.controls.enabled = false;
         }
@@ -596,7 +593,7 @@ export default class App extends AppBase {
     });
 
     this.arControls.addEventListener('up', () => {
-      if (this.ARMode) {
+      if (this.IsAR()) {
         if (this.arView.marcher) {
           this.arView.controls.enabled = true;
         }
@@ -605,25 +602,25 @@ export default class App extends AppBase {
     });
 
     this.arControls.addEventListener('proximityWarning', () => {
-      if (this.ARMode) {
+      if (this.IsAR()) {
         this.dispatchEvent({ type: 'proximityWarning', object: this });
       }
     });
 
     this.arControls.addEventListener('proximityNormal', () => {
-      if (this.ARMode) {
+      if (this.IsAR()) {
         this.dispatchEvent({ type: 'proximityNormal', object: this });
       }
     });
 
     this.arControls.addEventListener('onDownPan', () => {
-      if (this.ARMode) {
+      if (this.IsAR()) {
         this.dispatchEvent({ type: 'modelDragged', object: this });
       }
     });
 
     this.arControls.addEventListener('onDownRotate', () => {
-      if (this.ARMode) {
+      if (this.IsAR()) {
         this.dispatchEvent({ type: 'modelRotated', object: this });
       }
     });
@@ -639,7 +636,7 @@ export default class App extends AppBase {
   };
 
   update = time => {
-    if (this.ARMode) {
+    if (this.IsAR()) {
       this.reticle.update(0.5, 0.5);
       if (this.arControls) this.arControls.update(time);
     } else {
@@ -652,7 +649,7 @@ export default class App extends AppBase {
   };
 
   updateSceneRotation = time => {
-    if (this.modelScene && !this.FSMode) {
+    if (this.modelScene && !this.IsFullscreen()) {
       if (this.lastScrollY) {
         let angle = (this.lastScrollY - window.scrollY) / 1200.0;
         this.S3DScene.rotateY(angle);
@@ -663,12 +660,12 @@ export default class App extends AppBase {
   };
 
   render = () => {
-    if (!this.ARMode) this.renderer.render(this.S3DScene, this.S3DCamera);
+    if (!this.IsAR()) this.renderer.render(this.S3DScene, this.S3DCamera);
     if (this.HUD) this.HUD.render();
   };
 
   onWindowResize = () => {
-    if (this.FSMode) {
+    if (this.IsFullscreen()) {
       this.renderer.setSize(window.innerWidth, window.innerHeight);
       this.canvasProps.width = this.canvas.width;
       this.canvasProps.height = this.canvas.height;

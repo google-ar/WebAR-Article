@@ -503,8 +503,6 @@ export default class HUD extends THREE.EventDispatcher {
   };
 
   exitAR = event => {
-    this.FSButton.fadeIn(this.duration);
-    if (this.ARButton) this.ARButton.fadeIn(this.duration);
     this.closeButton.fadeOut(0);
     this.resetUserFlow();
     this.dismissToasts(this.duration);

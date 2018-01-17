@@ -282,6 +282,7 @@ export default class App extends AppBase {
       } else {
         this.HUD.foundSurface();
       }
+      this.S3DScene.remove(this.groundGrid);
       this.scene.add(this.modelScene);
       this.setAR(true);
     });
@@ -297,7 +298,6 @@ export default class App extends AppBase {
       this.HUD.dismissToasts(this.duration);
       this.reticle.fadeOut(this.duration, 0, () => {
         this.setAR(false);
-        this.S3DScene.remove(this.groundGrid);
         this.background.fadeIn(this.duration, 0, () => {
           if (this.arView.marcher) {
             this.arView.controls.enabled = false;

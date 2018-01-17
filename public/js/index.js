@@ -1699,6 +1699,7 @@ var _initialiseProps = function _initialiseProps() {
       } else {
         _this2.HUD.foundSurface();
       }
+      _this2.S3DScene.remove(_this2.groundGrid);
       _this2.scene.add(_this2.modelScene);
       _this2.setAR(true);
     });
@@ -1714,7 +1715,6 @@ var _initialiseProps = function _initialiseProps() {
       _this2.HUD.dismissToasts(_this2.duration);
       _this2.reticle.fadeOut(_this2.duration, 0, function () {
         _this2.setAR(false);
-        _this2.S3DScene.remove(_this2.groundGrid);
         _this2.background.fadeIn(_this2.duration, 0, function () {
           if (_this2.arView.marcher) {
             _this2.arView.controls.enabled = false;
@@ -1960,7 +1960,7 @@ var _initialiseProps = function _initialiseProps() {
     _this2.reticle = new _Reticle2.default({
       vrDisplay: _this2.vrDisplay,
       size: Math.max(modelSize.x, modelSize.z),
-      easing: 0.5
+      easing: 1.0
     });
     _this2.reticle.setAlpha(0.0);
 

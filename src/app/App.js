@@ -293,6 +293,7 @@ export default class App extends AppBase {
     this.modelShadow.material.opacity = 0.25;
     this.tweenOutModel();
     this.modelTween.onComplete(() => {
+      this.scene.remove(this.modelScene);
       this.resetS3DCamera();
       this.S3DControls.enabled = true;
       this.HUD.dismissToasts(this.duration);
@@ -311,7 +312,6 @@ export default class App extends AppBase {
           this.model.position.set(0, 0, 0);
           this.model.rotation.set(0, 0, 0);
           this.model.updateMatrixWorld(true);
-          this.scene.remove(this.modelScene);
 
           if (this.IsFullscreen()) {
             this.disableFullscreen();

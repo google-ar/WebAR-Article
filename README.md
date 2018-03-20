@@ -3,7 +3,15 @@
 ## About
 
 **Article is a responsive and information rich website that is progressively enhanced
-with Augmented Reality (AR) content exposed through experimental web technologies. To learn more about the technologies behind WebAR-Article, please visit:**
+with Augmented Reality (AR) content exposed through experimental web technologies. Check out Article in action here:**
+
+[https://google-ar.github.io/WebAR-Article/public/](https://google-ar.github.io/WebAR-Article/public/)
+
+**To learn more about Article, check out the blog post here:**
+
+[https://www.blog.google/products/google-vr/augmented-reality-web-everyone/](https://www.blog.google/products/google-vr/augmented-reality-web-everyone/)
+
+**To learn more about the technologies behind WebAR-Article, please visit:**
 
 [https://developers.google.com/ar/develop/web/getting-started](https://developers.google.com/ar/develop/web/getting-started)
 
